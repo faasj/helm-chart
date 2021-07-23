@@ -2,6 +2,68 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+deployer:
+  replicaCount: 1
+
+  image:
+    registry: #must to be
+    repository: #must to be
+    tag: #must to be
+
+  service:
+    port: #must to be
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "faasj-service-account"
+
+clusterrole:
+  apiGroups: ["", "apps"]
+  resources: ["services", "deployments"]
+  verbs: ["get", "watch", "list", "create"]
+
+namespace:
+
 replicaCount: 1
 
 image:
@@ -14,14 +76,6 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-serviceAccount:
-  # Specifies whether a service account should be created
-  create: true
-  # Annotations to add to the service account
-  annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
-  name: ""
 
 podAnnotations: {}
 
