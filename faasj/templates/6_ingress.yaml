@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-routs
+spec:
+  rules:
+    - host: gateway.20.93.72.134.nip.io
+      http:
+        paths:
+          - backend:
+              service:
+                name: faasj-gateway
+                port:
+                  number: 80
+            path: /
+            pathType: ImplementationSpecific
