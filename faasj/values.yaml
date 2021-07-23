@@ -2,6 +2,70 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+postgresql:
+  db: sberfaas
+  user: postgres
+  password: postgres
+
+  replicaCount: 1
+
+  image:
+    registry:
+    repository: postgres
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  containerPort: 5432
+
+  mountPath: /var/lib/postgresql/data
+
+gateway:
+  replicaCount: 1
+
+  image:
+    registry: faasjacr.azurecr.io
+    repository: gateway
+    tag: v1
+
+  service:
+    port: 80
+
+    
+deployer:
+  replicaCount: 1
+
+  image:
+    registry: faasjacr.azurecr.io
+    repository: deployer
+    tag: v1
+
+  service:
+    port: 80
+
+clusterrole:
+  apiGroups: ["", "apps"]
+  resources: ["services", "deployments"]
+  verbs: ["get", "watch", "list", "create"]
+  
+builder:
+  replicaCount: 1
+    
+  image:
+    registry: faasjacr.azurecr.io
+    repository: builder
+    tag: v1
+    
+  service:
+    port: 80
+
+jenkins:
+  url: http://jenkins/
+  user: admin
+  password: faasj
+
+
+replicaCount: 1
+
 image:
   repository: nginx
   pullPolicy: IfNotPresent
@@ -12,6 +76,14 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "faasj-service-account"
 
 podAnnotations: {}
 

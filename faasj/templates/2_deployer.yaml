@@ -1,0 +1,94 @@
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: {{ .Values.namespace | default "default" }}
+  name: {{ .Release.Name }}-deployer-cluster-role
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["create","delete","get","list","patch","update","watch"]
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create","delete","get","list","patch","update","watch"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get","list","watch"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create","delete","get","list","patch","update"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["create","delete","get","list","patch","update"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["create","delete","get","list","patch","update"]
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["create","delete","get","list","patch","update"]
+  - apiGroups: [""]
+    resources: ["ingresses"]
+    verbs: ["create","delete","get","list","patch","update"]
+---
+
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ .Release.Name }}-deploy-cluster-role-binding
+roleRef:
+  kind: ClusterRole
+  name: {{ .Release.Name }}-deployer-cluster-role
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.serviceAccount.name }}
+    namespace: {{ .Values.namespace | default "default" }}
+
+---
+
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: {{ .Release.Name }}-deployer
+  labels:
+    app: {{ .Release.Name }}-deployer
+spec:
+  replicas: {{ .Values.deployer.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-deployer
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-deployer
+    spec:
+      containers:
+        - name: {{ .Release.Name }}-deployer
+          image: "{{ .Values.deployer.image.registry }}/{{ .Values.deployer.image.repository }}:{{ .Values.deployer.image.tag }}"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          env:
+            - name: NAMESPACE
+              value: {{ .Values.namespace | default "default" }}
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+---
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}-deployer
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: {{ .Values.deployer.service.port }}
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: {{ .Release.Name }}-deployer
